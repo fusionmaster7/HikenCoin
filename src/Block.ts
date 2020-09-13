@@ -25,19 +25,33 @@ class Block {
     this.data = data;
     this.timestamp = timestamp;
     this.previousHash = previousHash;
-    this.hash = this.genHash(index, data, timestamp, previousHash);
+    this.hash = this.genHash();
   }
 
   //Function to generate SHA-256 Hash
-  private genHash(
-    index: number,
-    data: string,
-    timestamp: number,
-    previousHash: string
-  ): string {
-    const message: string = data + previousHash + index + timestamp;
+  public genHash(): string {
+    const message: string =
+      this.data + this.previousHash + this.index + this.timestamp;
     return sha256(message).toString();
   }
+
+  /*GETTER METHODS BEGIN*/
+  getPreviousHash(): string {
+    return this.previousHash;
+  }
+
+  getIndex(): number {
+    return this.index;
+  }
+
+  getHash(): string {
+    return this.hash;
+  }
+
+  getTimestamp(): number {
+    return this.timestamp;
+  }
+  /*GETTER METHODS END*/
 }
 
 export default Block;
