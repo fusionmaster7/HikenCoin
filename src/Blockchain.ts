@@ -23,12 +23,17 @@ class Blockchain {
     this.blockChain.push(genesisBlock);
   }
 
+  //TO GET THE BLOCKCHAIN
+  getBlockchain(): Block[] {
+    return this.blockChain;
+  }
+
   //TO GET LENGTH
   getLength(): number {
     return this.blockChain.length;
   }
 
-  //TO GET PREVIOUS BLOCK
+  //TO GET BLOCK AT GIVEN INDEX
   getBlock(index: number): Block {
     return this.blockChain[index];
   }
@@ -37,7 +42,7 @@ class Blockchain {
   generateBlock(data: string): Block {
     const index: number = this.blockChain.length;
     const timestamp: number = Date.now();
-    const previousBlock: Block = this.blockChain[index - 1];
+    const previousBlock: Block = this.getBlock(index - 1);
     const previousHash: string = previousBlock.getHash();
     const newBlock: Block = new Block(index, data, timestamp, previousHash);
     return newBlock;
@@ -82,7 +87,7 @@ class Blockchain {
   addBlock(newBlock: Block): void {
     const index: number = newBlock.getIndex();
     const previousBlock: Block = this.getBlock(index - 1);
-    if (this.checkBlockIntegrity(newBlock, previousBlock)) {
+    if (this.checkBlockIntegrity(previousBlock, newBlock)) {
       this.blockChain.push(newBlock);
       console.log("Sucessfully Added new Block to the chain");
     } else {
@@ -90,7 +95,6 @@ class Blockchain {
         "Could not verify Block Integrity. Addition operation Aborted"
       );
     }
-    this.blockChain.push(newBlock);
   }
 
   //TO CHECK INTEGRITY OF THE ENTIRE BLOCKCHAIN
@@ -99,12 +103,29 @@ class Blockchain {
     for (let i: number = 1; i < this.getLength(); i++) {
       const currentBlock: Block = this.getBlock(i);
       const previousBlock: Block = this.getBlock(i - 1);
-      if (!this.checkBlockIntegrity(previousBlock, currentBlock)) {
+      if (this.checkBlockIntegrity(previousBlock, currentBlock) === false) {
         isValid = false;
         break;
       }
     }
     return isValid;
+  }
+
+  /* 
+  FUNCTION TO UPDATE BLOCKCHAIN. WE UPDATE THE BLOCKCHAIN IF:
+    1. THE NEW BLOCKCHAIN IS A VALID ONE
+    2. THE NEW BLOCKCHAIN IS LONGER IN LENGTH
+  */
+  updateBlockchain(newBlockhain: Blockchain): void {
+    if (
+      newBlockhain.checkBlockchainIntegrity() &&
+      newBlockhain.getLength() > this.getLength()
+    ) {
+      this.blockChain = newBlockhain.getBlockchain();
+      console.log("Updated the Blockchain");
+    } else {
+      console.log("Update Operation Failed");
+    }
   }
 }
 
