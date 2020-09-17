@@ -1,4 +1,4 @@
-import crypto = require("crypto");
+import { genHash } from "./util";
 
 //THE PROOF OF WORK MUST BE DIFFICULT TO SOLVE BUT EASY TO VERIFY
 
@@ -32,18 +32,15 @@ class Block {
     this.timestamp = timestamp;
     this.previousHash = previousHash;
     this.difficulty = difficulty;
-    this.hash = this.genHash();
+    const message: string = this.createMessage();
+    this.hash = genHash(message);
   }
 
-  //Function to generate SHA-256 Hash
-  public genHash(): string {
+  //FUNCTION TO CREATE MESSAGE BASED ON DATA
+  public createMessage(): string {
     const message: string =
-      this.data + this.previousHash + this.index + this.timestamp;
-    const hashString: string = crypto
-      .createHash("sha256")
-      .update(message)
-      .digest("hex");
-    return hashString;
+      this.index + this.data + this.timestamp + this.previousHash;
+    return message;
   }
 
   /*GETTER METHODS BEGIN*/

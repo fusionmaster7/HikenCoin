@@ -1,6 +1,12 @@
-import Block from "./Block";
-
 //HERE WE STORE UTILITY FUNCTIONS
+import { createHash } from "crypto";
+import Block from "./Block";
+import Blockchain from "./Blockchain";
+
+//FUNCTION TO GENERATE SHA-2 HASH FROM MESSAGE STRING
+export const genHash = (message: string): string => {
+  return createHash("sha256").update(message).digest("hex");
+};
 
 //FUNCTION TO CONVERT A HEX STRING TO BINARY STRING
 export const hexToBinary = (hexString: string): string => {
@@ -22,7 +28,7 @@ export const checkValidHash = (
     1. Index of current block must be greater than previous block
     2. Previous Hash of current block must be equal to Hash of previous block
     3. Hash of the block must be valid
-  */
+*/
 export const checkBlockIntegrity = (
   previousBlock: Block,
   currentBlock: Block
@@ -47,10 +53,45 @@ export const checkBlockIntegrity = (
   CHECK IF DATA HAS BEEN ALTERED IE HASH OF THE BLOCK IS VALID
   OR NOT
   */
-  const newGeneratedHash: string = currentBlock.genHash();
+  const currentBlockMessage: string = currentBlock.createMessage();
+  const newGeneratedHash: string = genHash(currentBlockMessage);
   if (newGeneratedHash !== currentBlockHash) {
     console.log("Hash Verification Test Failed");
     return false;
   }
   return true;
+};
+
+//FUNCTION TO CHECK INTEGRITY OF BLOCKCHAIN
+export const checkBlockchainIntegrity = (chain: Blockchain): boolean => {
+  let isValid: boolean = true;
+  for (let i: number = 1; i < chain.getLength(); i++) {
+    const currentBlock: Block = chain.getBlock(i);
+    const previousBlock: Block = chain.getBlock(i - 1);
+    if (checkBlockIntegrity(previousBlock, currentBlock) === false) {
+      isValid = false;
+      break;
+    }
+  }
+  return isValid;
+};
+
+/* 
+  FUNCTION TO UPDATE BLOCKCHAIN. WE UPDATE THE BLOCKCHAIN IF:
+    1. THE NEW BLOCKCHAIN IS A VALID ONE
+    2. THE NEW BLOCKCHAIN IS LONGER IN LENGTH
+*/
+export const updateBlockchain = (
+  currentBlockchain: Blockchain,
+  newBlockchain: Blockchain
+): void => {
+  if (
+    checkBlockchainIntegrity(newBlockchain) &&
+    newBlockchain.getLength() > currentBlockchain.getLength()
+  ) {
+    currentBlockchain.blockChain = [...newBlockchain.getBlockchain()];
+    console.log("Updated the Blockchain");
+  } else {
+    console.log("Update Operation Failed");
+  }
 };

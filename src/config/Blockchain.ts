@@ -1,6 +1,8 @@
 import Block from "./Block";
-import crypto = require("crypto");
-import { checkBlockIntegrity } from "./util";
+import { genHash, checkBlockIntegrity, checkBlockchainIntegrity } from "./util";
+
+//DEFINED THE DIFFICULTY AS A CONSTANT
+const DIFFICULTY: number = 0;
 
 /*
 GENESIS BLOCK IS THE FIRST BLOCK AND DOES NOT HAVE A PREVIOUS HASH
@@ -14,15 +16,13 @@ class Blockchain {
     const randomDate: string = Date.now().toString();
     const randomNumber: string = Math.random().toString();
     const message: string = randomDate + randomNumber;
-    const genesisPreviousHash: string = crypto
-      .createHash("sha256")
-      .update(message)
-      .digest("hex");
+    const genesisPreviousHash: string = genHash(message);
     const genesisBlock: Block = new Block(
       0,
       "Genesis Block",
       Date.now(),
-      genesisPreviousHash
+      genesisPreviousHash,
+      DIFFICULTY
     );
     this.blockChain.push(genesisBlock);
   }
@@ -48,7 +48,13 @@ class Blockchain {
     const timestamp: number = Date.now();
     const previousBlock: Block = this.getBlock(index - 1);
     const previousHash: string = previousBlock.getHash();
-    const newBlock: Block = new Block(index, data, timestamp, previousHash);
+    const newBlock: Block = new Block(
+      index,
+      data,
+      timestamp,
+      previousHash,
+      DIFFICULTY
+    );
     return newBlock;
   }
 
@@ -66,20 +72,6 @@ class Blockchain {
     }
   }
 
-  //TO CHECK INTEGRITY OF THE ENTIRE BLOCKCHAIN
-  checkBlockchainIntegrity(): boolean {
-    let isValid: boolean = true;
-    for (let i: number = 1; i < this.getLength(); i++) {
-      const currentBlock: Block = this.getBlock(i);
-      const previousBlock: Block = this.getBlock(i - 1);
-      if (checkBlockIntegrity(previousBlock, currentBlock) === false) {
-        isValid = false;
-        break;
-      }
-    }
-    return isValid;
-  }
-
   /* 
   FUNCTION TO UPDATE BLOCKCHAIN. WE UPDATE THE BLOCKCHAIN IF:
     1. THE NEW BLOCKCHAIN IS A VALID ONE
@@ -87,7 +79,7 @@ class Blockchain {
   */
   updateBlockchain(newBlockhain: Blockchain): void {
     if (
-      newBlockhain.checkBlockchainIntegrity() &&
+      checkBlockchainIntegrity(newBlockhain) &&
       newBlockhain.getLength() > this.getLength()
     ) {
       this.blockChain = newBlockhain.getBlockchain();
