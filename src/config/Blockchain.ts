@@ -1,8 +1,11 @@
 import Block from "./Block";
-import { genHash, checkBlockIntegrity, checkBlockchainIntegrity } from "./util";
+import { genHash, checkBlockIntegrity, checkValidHash } from "./util";
 
 //DEFINED THE DIFFICULTY AS A CONSTANT
 const DIFFICULTY: number = 0;
+
+//DEFINED ALLOWED ATTEMPTS TO VERIFY A BLOCK
+const ALLOWED_VALID_ATTEMPTS: number = 10;
 
 /*
 GENESIS BLOCK IS THE FIRST BLOCK AND DOES NOT HAVE A PREVIOUS HASH
@@ -22,7 +25,8 @@ class Blockchain {
       "Genesis Block",
       Date.now(),
       genesisPreviousHash,
-      DIFFICULTY
+      DIFFICULTY,
+      0
     );
     this.blockChain.push(genesisBlock);
   }
@@ -48,12 +52,14 @@ class Blockchain {
     const timestamp: number = Date.now();
     const previousBlock: Block = this.getBlock(index - 1);
     const previousHash: string = previousBlock.getHash();
+    let nonce: number = 0;
     const newBlock: Block = new Block(
       index,
       data,
       timestamp,
       previousHash,
-      DIFFICULTY
+      DIFFICULTY,
+      nonce
     );
     return newBlock;
   }
@@ -61,31 +67,24 @@ class Blockchain {
   //TO ADD BLOCK
   addBlock(newBlock: Block): void {
     const index: number = newBlock.getIndex();
-    const previousBlock: Block = this.getBlock(index - 1);
-    if (checkBlockIntegrity(previousBlock, newBlock)) {
+    //const previousBlock: Block = this.getBlock(index - 1);
+    const blockDifficulty: number = newBlock.getDifficulty();
+    let isValidBlock: boolean = false;
+    let blockNonce: number = newBlock.getNonce();
+    let validAttempts = 0;
+    do {
+      newBlock.setNonce(blockNonce);
+      newBlock.setHash(genHash(newBlock.createMessage()));
+      let blockHash: string = newBlock.getHash();
+      isValidBlock = checkValidHash(blockHash, blockDifficulty) ? true : false;
+      blockNonce++;
+      validAttempts++;
+    } while (!isValidBlock && validAttempts <= ALLOWED_VALID_ATTEMPTS);
+    if (isValidBlock) {
       this.blockChain.push(newBlock);
-      console.log("Sucessfully Added new Block to the chain");
+      console.log("Successfully Added Block");
     } else {
-      console.log(
-        "Could not verify Block Integrity. Addition operation Aborted"
-      );
-    }
-  }
-
-  /* 
-  FUNCTION TO UPDATE BLOCKCHAIN. WE UPDATE THE BLOCKCHAIN IF:
-    1. THE NEW BLOCKCHAIN IS A VALID ONE
-    2. THE NEW BLOCKCHAIN IS LONGER IN LENGTH
-  */
-  updateBlockchain(newBlockhain: Blockchain): void {
-    if (
-      checkBlockchainIntegrity(newBlockhain) &&
-      newBlockhain.getLength() > this.getLength()
-    ) {
-      this.blockChain = newBlockhain.getBlockchain();
-      console.log("Updated the Blockchain");
-    } else {
-      console.log("Update Operation Failed");
+      console.log("Block Hash could not be verified. Add operation Aborted");
     }
   }
 }
