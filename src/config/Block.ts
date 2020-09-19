@@ -19,19 +19,22 @@ class Block {
   public hash: string;
   public previousHash: string;
   public difficulty: number;
+  public nonce: number;
 
   constructor(
     index: number,
     data: string,
     timestamp: number,
     previousHash: string,
-    difficulty: number
+    difficulty: number,
+    nonce: number
   ) {
     this.index = index;
     this.data = data;
     this.timestamp = timestamp;
     this.previousHash = previousHash;
     this.difficulty = difficulty;
+    this.nonce = nonce;
     const message: string = this.createMessage();
     this.hash = genHash(message);
   }
@@ -39,7 +42,7 @@ class Block {
   //FUNCTION TO CREATE MESSAGE BASED ON DATA
   public createMessage(): string {
     const message: string =
-      this.index + this.data + this.timestamp + this.previousHash;
+      this.index + this.data + this.timestamp + this.previousHash + this.nonce;
     return message;
   }
 
@@ -59,11 +62,28 @@ class Block {
   getTimestamp(): number {
     return this.timestamp;
   }
+
+  getDifficulty(): number {
+    return this.difficulty;
+  }
+
+  getNonce(): number {
+    return this.nonce;
+  }
+
   /*GETTER METHODS END*/
 
   /*SETTER METHODS BEGIN*/
-  setDifficulty(newDifficulty: number) {
+  setDifficulty(newDifficulty: number): void {
     this.difficulty = newDifficulty;
+  }
+
+  setHash(hash: string): void {
+    this.hash = hash;
+  }
+
+  setNonce(nonce: number): void {
+    this.nonce = nonce;
   }
   /*SETTER METHODS END*/
 }
