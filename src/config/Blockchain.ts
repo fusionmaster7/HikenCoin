@@ -1,11 +1,17 @@
 import Block from "./Block";
-import { genHash, checkBlockIntegrity, checkValidHash } from "./util";
+import { genHash, checkValidHash, getAdjustedDifficulty } from "./util";
 
 //DEFINED THE DIFFICULTY AS A CONSTANT
-const DIFFICULTY: number = 0;
+let DIFFICULTY: number = 4;
 
 //DEFINED ALLOWED ATTEMPTS TO VERIFY A BLOCK
-const ALLOWED_VALID_ATTEMPTS: number = 10;
+let ALLOWED_VALID_ATTEMPTS: number = 10;
+
+//BLOCK GENERATION INTERVAL
+const BLOCK_GENERATION_INTERVAL: number = 10;
+
+//DIFFICULTY ADJUSTMENT LEVEL
+const DIFFICULTY_ADJUSTMENT_INTERVAL: number = 10;
 
 /*
 GENESIS BLOCK IS THE FIRST BLOCK AND DOES NOT HAVE A PREVIOUS HASH
@@ -67,7 +73,6 @@ class Blockchain {
   //TO ADD BLOCK
   addBlock(newBlock: Block): void {
     const index: number = newBlock.getIndex();
-    //const previousBlock: Block = this.getBlock(index - 1);
     const blockDifficulty: number = newBlock.getDifficulty();
     let isValidBlock: boolean = false;
     let blockNonce: number = newBlock.getNonce();
@@ -82,6 +87,14 @@ class Blockchain {
     } while (!isValidBlock && validAttempts <= ALLOWED_VALID_ATTEMPTS);
     if (isValidBlock) {
       this.blockChain.push(newBlock);
+      const previousBlock: Block = this.getBlock(index - 1);
+      DIFFICULTY = getAdjustedDifficulty(
+        newBlock,
+        previousBlock.getTimestamp(),
+        DIFFICULTY,
+        BLOCK_GENERATION_INTERVAL,
+        DIFFICULTY_ADJUSTMENT_INTERVAL
+      );
       console.log("Successfully Added Block");
     } else {
       console.log("Block Hash could not be verified. Add operation Aborted");
