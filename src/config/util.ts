@@ -95,3 +95,37 @@ export const updateBlockchain = (
     console.log("Update Operation Failed");
   }
 };
+
+/*
+  FUNCTION TO GET READJUSTED DIFFICULTY
+    1. TIME TAKEN TO CALCULATE A BLOCK = TIMESTAMP OF CURRENT BLOCK-TIMESTAMP OF PREVIOUS BLOCK
+    2. IDEALLY TIME TAKEN SHOULD BE = BLOCK_GENERATION_INTERVAL*DIFFICULTY_ADJUSTMENT_INTERVAL
+    3. IF ACTUAL TIME TAKEN IS 2*(IDEAL TIME TAKEN),WE READJUST THE BLOCK DIFFICULTY
+*/
+export const getAdjustedDifficulty = (
+  currentBlock: Block,
+  previousBlockTimestamp: number,
+  CURRENT_DIFFICULTY: number,
+  BLOCK_GENERATION_INTERVAL: number,
+  DIFFICULTY_ADJUSTMENT_INTERVAL: number
+): number => {
+  const currentBlockTimestamp: number = currentBlock.getTimestamp();
+  const timeTaken: number = currentBlockTimestamp - previousBlockTimestamp;
+  return timeTaken >=
+    2 * BLOCK_GENERATION_INTERVAL * DIFFICULTY_ADJUSTMENT_INTERVAL
+    ? CURRENT_DIFFICULTY - 1
+    : CURRENT_DIFFICULTY;
+};
+
+/*FUNCTION TO VALIDATE TIMESTAMP*/
+export const validateTimestamp = (
+  currentTimestamp: number,
+  previousTimestamp: number
+): boolean => {
+  //DIFFERENCE OF ATMOST 60 SECONDS
+  const idealDifference: number = 60000;
+  return (
+    currentTimestamp - previousTimestamp <= idealDifference &&
+    Date.now() - currentTimestamp <= 60
+  );
+};
