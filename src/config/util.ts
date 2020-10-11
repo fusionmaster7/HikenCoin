@@ -87,7 +87,8 @@ export const updateBlockchain = (
 ): void => {
   if (
     checkBlockchainIntegrity(newBlockchain) &&
-    newBlockchain.getLength() > currentBlockchain.getLength()
+    newBlockchain.getCummulativeDifficulty() >
+      currentBlockchain.getCummulativeDifficulty()
   ) {
     currentBlockchain.blockChain = [...newBlockchain.getBlockchain()];
     console.log("Updated the Blockchain");
