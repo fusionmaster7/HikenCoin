@@ -21,6 +21,7 @@ AND INSTEAD OF HAVING NULL VALUE WE WILL GENERATE A RANDOM PREVIOUS HASH
 
 class Blockchain {
   public blockChain: Block[] = [];
+  public blockChainDifficulty: number;
   constructor() {
     const randomDate: string = Date.now().toString();
     const randomNumber: string = Math.random().toString();
@@ -35,6 +36,7 @@ class Blockchain {
       0
     );
     this.blockChain.push(genesisBlock);
+    this.blockChainDifficulty = 0;
   }
 
   //TO GET THE BLOCKCHAIN
@@ -50,6 +52,11 @@ class Blockchain {
   //TO GET BLOCK AT GIVEN INDEX
   getBlock(index: number): Block {
     return this.blockChain[index];
+  }
+
+  //TO GET CUMMULATIVE DIFFICULTY OF BLOCKCHAIN
+  getCummulativeDifficulty(): number {
+    return this.blockChainDifficulty;
   }
 
   //TO GENERATE BLOCK
@@ -87,6 +94,7 @@ class Blockchain {
     } while (!isValidBlock && validAttempts <= ALLOWED_VALID_ATTEMPTS);
     if (isValidBlock) {
       this.blockChain.push(newBlock);
+      this.blockChainDifficulty += Math.pow(2, newBlock.getDifficulty());
       const previousBlock: Block = this.getBlock(index - 1);
       DIFFICULTY = getAdjustedDifficulty(
         newBlock,
