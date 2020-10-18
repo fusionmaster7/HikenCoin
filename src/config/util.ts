@@ -1,7 +1,11 @@
 //HERE WE STORE UTILITY FUNCTIONS
 import { createHash } from "crypto";
+import { ec as EC } from "elliptic";
 import Block from "./Block";
 import Blockchain from "./Blockchain";
+import Transaction from "./Transaction";
+import TxIn from "./TxIn";
+import UnspentTxOut from "./UnspentTxOut";
 
 //FUNCTION TO GENERATE SHA-2 HASH FROM MESSAGE STRING
 export const genHash = (message: string): string => {
@@ -21,6 +25,11 @@ export const checkValidHash = (
   const binaryHashString: string = hexToBinary(hashString);
   const prefix: string = "0".repeat(difficulty);
   return binaryHashString.startsWith(prefix);
+};
+
+/*TO CONVERT DECIMAL TO HEXT STRING*/
+export const toHexString = (decimalString: string): string => {
+  return parseInt(decimalString, 10).toString(16);
 };
 
 /*
@@ -129,4 +138,25 @@ export const validateTimestamp = (
     currentTimestamp - previousTimestamp <= idealDifference &&
     Date.now() - currentTimestamp <= 60
   );
+};
+
+/*SIGN TRANSACTION INPUT AND RETURN STRING*/
+export const signTxnIn = (
+  transaction: Transaction,
+  txnInIndex: number,
+  privateKey: string,
+  unspenTxOuts: UnspentTxOut[]
+): string => {
+  const txIn: TxIn = transaction.txIns[txnInIndex];
+  const dataToSign: string = transaction.txnId;
+  const referencedUnspentTxnOut: UnspentTxOut = findUnspentTxOut(
+    txIn.txOutId,
+    txIn.txOutIndex,
+    unspenTxOuts
+  );
+  const referencedAddress = referencedUnspentTxnOut.address;
+  const ec: EC = new EC("secp256k1");
+  const keyPair: EC.KeyPair = ec.keyFromPrivate(privateKey, "hex");
+  const signature: string = toHexString(keyPair.sign(dataToSign).toDER());
+  return signature;
 };
